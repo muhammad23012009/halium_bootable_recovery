@@ -265,11 +265,15 @@ fi
 # Check for flag file to indicate if system needs to be install in userdata or not
 DEVICE_TARBALL=$(cat $1.applying | grep device | awk '{print $2}')
 # Now, peek into that tarball and see if our flag exists.
-FILE_CONTENTS=$(busybox xzcat /cache/recovery/$DEVICE_TARBALL | busybox tar --numeric-owner -tvf -)
-if [[ "$FILE_CONTENTS" = *"system_in_data"* ]]; then
-    USE_SYSTEM_PARTITION=0
+
+# This is needed to work with Halium 5.1 and 7.1 tarballs
+if grep -q systempart= /proc/cmdline; then
+     USE_SYSTEM_PARTITION=1
 else
-    USE_SYSTEM_PARTITION=1
+    if [[ "$FILE_CONTENTS" = *"system_in_data"* ]]; then
+        USE_SYSTEM_PARTITION=0
+    fi
+    USE_SYSTEM_PARTITION=0
 fi
 
 # However, do not use the block device name in the kernel command line, as that is not consistently
